@@ -18,10 +18,18 @@ int main(int argc, char **argv){
             scanf("%d", &arr[i]);
             MPI_Bsend(&arr[i], 1, MPI_INT, i, 1, MPI_COMM_WORLD);
         }
+        ans = arr[0];
+        printf("%d for rank 0\n", ans * ans);
     }
     else{
         MPI_Recv(&ans, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
-        printf("%d for rank %d\n", ans * ans, rank);
+        if (rank % 2 == 0){
+            printf("%d for rank %d\n", ans * ans, rank);
+        }
+        else{
+            printf("%d for rank %d\n", ans * ans * ans, rank);
+        }
+        
     }
     MPI_Buffer_detach(&buffer, &bsize);
     MPI_Finalize();
