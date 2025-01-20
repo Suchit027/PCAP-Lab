@@ -18,6 +18,7 @@ int main(int argc, char **argv){
         scanf("%s", s2);
         l_size = (strlen(s1) / size);
         ans = (char *)malloc(((strlen(s1) * 2) + 1) * sizeof(char));
+        // note that to denote a character we use '' rather that "". "" is only used to denote strings
         ans[strlen(s1) * 2] = '\0';
     }
     MPI_Bcast(&l_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
