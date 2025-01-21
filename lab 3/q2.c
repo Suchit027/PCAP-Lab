@@ -27,6 +27,7 @@ int main(int argc, char **argv){
     printf("%f from rank %d\n", avg, rank);
     MPI_Reduce(&avg, &ans, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
     if(rank == 0){
+        ans /= size;
         printf("%f is the answer\n", ans);
     }
     MPI_Finalize();
