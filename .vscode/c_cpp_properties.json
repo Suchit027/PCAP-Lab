@@ -1,23 +1,27 @@
 {
+    "version": 4,
     "configurations": [
         {
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/lib/x86_64-linux-gnu/mpich/include/"
+                "/usr/lib/x86_64-linux-gnu/openmpi/include",  // OpenMPI include path
+                "/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi"  // OpenMPI subdirectory for headers
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
-            "cppStandard": "gnu++17",
+            "compilerPath": "/usr/bin/g++",  // or use mpic++ if preferred
             "intelliSenseMode": "linux-gcc-x64",
             "browse": {
                 "path": [
-                    "/usr/include",
-                    "/usr/include/mpich"
+                    "${workspaceFolder}",
+                    "/usr/lib/x86_64-linux-gnu/openmpi/include",
+                    "/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi"
                 ]
-            }
+            },
+            "linkerOptions": [
+                "-L/usr/lib/x86_64-linux-gnu/openmpi/lib",  // Path to OpenMPI libraries
+                "-lmpi"  // Link against OpenMPI
+            ]
         }
-    ],
-    "version": 4
+    ]
 }
