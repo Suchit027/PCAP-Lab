@@ -46,9 +46,10 @@ int main(int argc, char **argv)
 
     MPI_Comm c = MPI_COMM_NULL;
     // Try to use MPI_Scan with deliberately incorrect parameters to trigger error
-    err_code = MPI_Scan(&fact, &ans, 1, MPI_DATATYPE_NULL, MPI_SUM, MPI_COMM_WORLD);
-    // err_code = MPI_Scan(&fact, &ans, 1, MPI_DATATYPE_NULL, MPI_SUM, c);
+    // err_code = MPI_Scan(&fact, &ans, 1, MPI_DATATYPE_NULL, MPI_SUM, MPI_COMM_WORLD);
+    err_code = MPI_Scan(&fact, &ans, 1, MPI_INT, MPI_SUM, c);
     error_handle(err_code, rank);
+    printf("%d from rank %d\n", ans, rank);
     MPI_Finalize();
     return 0;
 }
