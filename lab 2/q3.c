@@ -11,6 +11,7 @@ int main(int argc, char **argv){
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     int bsize = 1000;
     int *buffer = (int *)malloc(bsize * sizeof(int));
+    // note buffer size in bits is needed
     MPI_Buffer_attach(buffer, bsize * sizeof(int));
     if (rank == 0){
         printf("enter the numbers\n");
