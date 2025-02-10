@@ -48,6 +48,7 @@ int main(int argc, char **argv)
     // Try to use MPI_Scan with deliberately incorrect parameters to trigger error
     // err_code = MPI_Scan(&fact, &ans, 1, MPI_DATATYPE_NULL, MPI_SUM, MPI_COMM_WORLD);
     err_code = MPI_Scan(&fact, &ans, 1, MPI_INT, MPI_SUM, c);
+    // no need to specify root process in scan
     error_handle(err_code, rank);
     printf("%d from rank %d\n", ans, rank);
     MPI_Finalize();
