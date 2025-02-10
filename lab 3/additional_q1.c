@@ -30,6 +30,7 @@ int main(int argc, char **argv){
             store[i] *= store[i] * store[i];
         }
     }
+    // first argument is from where are you sending
     MPI_Gather(store, m, MPI_INT, ans, m, MPI_INT, 0, MPI_COMM_WORLD);
     if (rank == 0){
         printf("the new array - ");
