@@ -34,6 +34,7 @@ int main(int argc, char **argv){
             scanf("%d", &arr[i]);
         }
         for (int i = 1; i < size; ++i){
+            // here buffer is what you are sending
             MPI_Send(&arr[i], 1, MPI_INT, i, 1, MPI_COMM_WORLD);
         }
         if (isprime(arr[0])){
@@ -44,6 +45,7 @@ int main(int argc, char **argv){
         }
     }
     else{
+        // here buffer is what you are using to store what you are getting
         MPI_Recv(&x, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
         if (isprime(x)){
             printf("%d is prime\n", x);
