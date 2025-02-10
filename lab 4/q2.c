@@ -59,6 +59,7 @@ int main(int argc, char **argv)
             occ += 1;
         }
     }
+    // note scan
     err_code = MPI_Scan(&occ, &ans, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     err_handle(err_code, rank);
 

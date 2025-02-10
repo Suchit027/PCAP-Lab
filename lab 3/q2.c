@@ -17,6 +17,7 @@ int main(int argc, char **argv){
             scanf("%d", &ori[i]);
         }
     }
+    // memory allocation first
     MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
     store = (int *)malloc(m * sizeof(int));
     MPI_Scatter(ori, m, MPI_INT, store, m, MPI_INT, 0, MPI_COMM_WORLD);

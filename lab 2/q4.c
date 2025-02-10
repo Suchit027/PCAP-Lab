@@ -14,6 +14,7 @@ void standard(int argc, char **argv)
     {
         printf("enter the integer\n");
         scanf("%d", &x);
+        // this if condiiton is important if number of processes issued is small
         if (rank + 1 < size)
         {
             MPI_Send(&x, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);

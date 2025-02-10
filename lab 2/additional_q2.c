@@ -25,6 +25,7 @@ int main(int argc, char **argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank == 0){
         ans += factorial(1);
+        // note recv in loop
         for (int i = 1; i < size; ++i){
             MPI_Recv(&x, 1, MPI_INT, i, 1, MPI_COMM_WORLD, &status);
             ans += x;

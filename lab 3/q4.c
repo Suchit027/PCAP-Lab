@@ -10,13 +10,16 @@ int main(int argc, char **argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     if (rank == 0){
+        // note this can be a way to allocate string memory too
         s1 = (char *)malloc(100 * sizeof(char));
         s2 = (char *)malloc(100 * sizeof(char));
         printf("enter string 1\n");
         scanf("%s", s1);
         printf("enter string 2\n");
         scanf("%s", s2);
+        // note strlen doesn't account the null character
         l_size = (strlen(s1) / size);
+        // note strlen
         ans = (char *)malloc(((strlen(s1) * 2) + 1) * sizeof(char));
         // note that to denote a character we use '' rather that "". "" is only used to denote strings
         ans[strlen(s1) * 2] = '\0';

@@ -13,6 +13,7 @@ int main(int argc, char **argv){
         scanf("%s", s);
         // +1 for including the null character
         int n = strlen(s) + 1;
+        // note how the word is sent. First send the number of characters then the word itself
         MPI_Ssend(&n, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
         MPI_Ssend(&s, n, MPI_CHAR, 1, 1, MPI_COMM_WORLD);
         MPI_Recv(&s, n, MPI_CHAR, 1, 1, MPI_COMM_WORLD, &status);

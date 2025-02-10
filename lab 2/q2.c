@@ -10,6 +10,7 @@ int main(int argc, char **argv){
     if (rank == 0){
         printf("enter the number\n");
         scanf("%d", &x);
+        // note how for loop is utilized
         for (int i = 1; i < size; ++i){
             MPI_Send(&x, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
         }

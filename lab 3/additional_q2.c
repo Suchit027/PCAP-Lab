@@ -21,6 +21,7 @@ int main(int argc, char **argv){
     else{
         val = 0;
     }
+    // note gather
     MPI_Gather(&val, 1, MPI_INT, arr, 1, MPI_INT, 0, MPI_COMM_WORLD);
     if(rank == 0){
         int one = 0, zero = 0;
