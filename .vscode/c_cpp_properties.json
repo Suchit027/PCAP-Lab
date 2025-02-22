@@ -1,27 +1,17 @@
 {
-    "version": 4,
     "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/lib/x86_64-linux-gnu/openmpi/include",  // OpenMPI include path
-                "/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi"  // OpenMPI subdirectory for headers
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/g++",  // or use mpic++ if preferred
-            "intelliSenseMode": "linux-gcc-x64",
-            "browse": {
-                "path": [
-                    "${workspaceFolder}",
-                    "/usr/lib/x86_64-linux-gnu/openmpi/include",
-                    "/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi"
-                ]
-            },
-            "linkerOptions": [
-                "-L/usr/lib/x86_64-linux-gnu/openmpi/lib",  // Path to OpenMPI libraries
-                "-lmpi"  // Link against OpenMPI
-            ]
-        }
-    ]
-}
+      {
+        "name": "Win32",
+        "includePath": [
+          "D:/NVIDIA GPU Computing Toolkit/CUDA/v12.8/include",
+          "${workspaceFolder}/**"
+        ],
+        "defines": [],
+        "compilerPath": "D:/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe",
+        "intelliSenseMode": "gcc-x64",
+        "compilerArgs": []
+      }
+    ],
+    "version": 4
+  }
+  
