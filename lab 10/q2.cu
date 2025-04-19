@@ -40,6 +40,7 @@ int main(){
     cudaMemcpyToSymbol(mask, maskk, sizeof(int) * m);
     cudaMemcpy(da, a, sizeof(int) * n, cudaMemcpyHostToDevice);
     convconstant<<<1, n>>>(da, db, m, n);
+    // note cudaMemcpyDeviceToHost
     cudaMemcpy(b, db, sizeof(int) * n, cudaMemcpyDeviceToHost);
     printf("answer - \n");
     for(int i = 0; i < n; ++i){

@@ -3,33 +3,41 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#define MAXLEN 20 
+#define MAXLEN 20
 
-__global__ void inclusive(int *a, int a_len){
+__global__ void inclusive(int *a, int a_len)
+{
     __shared__ int temp[MAXLEN];
     int i = (blockIdx.x * blockDim.x) + threadIdx.x;
     temp[i] = a[i];
+    // note syncthreads needed to store all values
     __syncthreads();
-    for(int stride = 1; stride < a_len; stride *= 2){
+    for (int stride = 1; stride < a_len; stride *= 2)
+    {
         int val = 0;
-        if(stride <= i){
+        if (stride <= i)
+        {
             val = temp[i - stride];
         }
+        // fetching all values
         __syncthreads();
         temp[i] += val;
+        // adding all values
         __syncthreads();
     }
     a[i] = temp[i];
     return;
 }
 
-int main(){
+int main()
+{
     int *a, n, *da;
     printf("enter array size\n");
     scanf("%d", &n);
     a = (int *)malloc(sizeof(int) * n);
     printf("enter array\n");
-    for(int i = 0; i < n; ++i){
+    for (int i = 0; i < n; ++i)
+    {
         scanf("%d", &a[i]);
     }
     cudaMalloc((void **)&da, sizeof(int) * n);
@@ -37,9 +45,10 @@ int main(){
     inclusive<<<1, n>>>(da, n);
     cudaMemcpy(a, da, sizeof(int) * n, cudaMemcpyDeviceToHost);
     printf("answer \n");
-    for(int i = 0; i < n; ++i){
+    for (int i = 0; i < n; ++i)
+    {
         printf("%d ", a[i]);
-    } 
+    }
     cudaFree(da);
     return 0;
 }

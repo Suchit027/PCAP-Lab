@@ -3,52 +3,48 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#define TILE_WIDTH 2
+#define TILE_SIZE 2
 
-__global__ void mul(int *a, int *b, int *c, int a_n, int b_n)
+__global__ void mul(int *a, int *b, int *c, int a_m, int a_n, int b_n)
 {
-    __shared__ int md[TILE_WIDTH][TILE_WIDTH];
-    __shared__ int nd[TILE_WIDTH][TILE_WIDTH];
+    __shared__ int m[TILE_SIZE][TILE_SIZE];
+    __shared__ int n[TILE_SIZE][TILE_SIZE];
 
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-    int pval = 0;
+    int row = (blockDim.y * blockIdx.y) + threadIdx.y;
+    int col = (blockDim.x * blockIdx.x) + threadIdx.x;
 
-    if (row >= gridDim.y * TILE_WIDTH || col >= b_n)
+    if (row < a_m && col < b_n)
     {
-        return;
-    }
-
-    int num_phases = (a_n + TILE_WIDTH - 1) / TILE_WIDTH;
-    for (int phase = 0; phase < num_phases; ++phase)
-    {
-        int tiled_col = (phase * TILE_WIDTH) + threadIdx.x;
-        int tiled_row = (phase * TILE_WIDTH) + threadIdx.y;
-
-        if (tiled_col >= a_n || tiled_row >= a_n)
+        // note it is a_n and not a_m
+        int total_phases = (a_n + TILE_SIZE - 1) / TILE_SIZE;
+        int pval = 0;
+        for (int phases = 0; phases < total_phases; ++phases)
         {
-            return;
+            int tiled_col = (phases * TILE_SIZE) + threadIdx.x;
+            int tiled_row = (phases * TILE_SIZE) + threadIdx.y;
+            if (tiled_col < a_n && tiled_row < a_n)
+            {
+                m[threadIdx.y][threadIdx.x] = a[(row * a_n) + tiled_col];
+                n[threadIdx.y][threadIdx.x] = b[(tiled_row * b_n) + col];
+            }
+            else
+            {
+                m[threadIdx.y][threadIdx.x] = 0;
+                n[threadIdx.y][threadIdx.x] = 0;
+            }
+            __syncthreads();
+            for (int k = 0; k < TILE_SIZE; ++k)
+            {
+                pval += m[threadIdx.y][k] * n[k][threadIdx.x];
+            }
+            __syncthreads();
         }
-
-        md[threadIdx.y][threadIdx.x] = a[row * a_n + tiled_col];
-
-        nd[threadIdx.y][threadIdx.x] = b[tiled_row * b_n + col];
-
-        __syncthreads();
-
-        for (int k = 0; k < TILE_WIDTH; ++k)
-        {
-            pval += md[threadIdx.y][k] * nd[k][threadIdx.x];
-        }
-
-        __syncthreads();
+        c[(row * b_n) + col] = pval;
     }
-
-    c[row * b_n + col] = pval;
+    return;
 }
 
-int main()
-{
+int main(){
     int *a, *b, *c, m1, n1, m2, n2, *da, *db, *dc;
     printf("enter m1, n1, m2, n2\n");
     scanf("%d %d %d %d", &m1, &n1, &m2, &n2);
@@ -76,9 +72,9 @@ int main()
     cudaMalloc((void **)&dc, sizeof(int) * m1 * n2);
     cudaMemcpy(da, a, sizeof(int) * m1 * n1, cudaMemcpyHostToDevice);
     cudaMemcpy(db, b, sizeof(int) * m2 * n2, cudaMemcpyHostToDevice);
-    dim3 dimBlock(TILE_WIDTH, TILE_WIDTH);
-    dim3 dimGrid((n2 + TILE_WIDTH - 1) / TILE_WIDTH, (m1 + TILE_WIDTH - 1) / TILE_WIDTH);
-    mul<<<dimGrid, dimBlock>>>(da, db, dc, n1, n2);
+    dim3 dimBlock(TILE_SIZE, TILE_SIZE);
+    dim3 dimGrid((n2 + TILE_SIZE - 1) / TILE_SIZE, (m1 + TILE_SIZE - 1) / TILE_SIZE);
+    mul<<<dimGrid, dimBlock>>>(da, db, dc, m1, n1, n2);
     cudaMemcpy(c, dc, sizeof(int) * m1 * n2, cudaMemcpyDeviceToHost);
     printf("answer\n");
     for (int i = 0; i < m1; ++i)

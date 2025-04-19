@@ -3,70 +3,54 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#define TILE_WIDTH 2
+__constant__ int mask[5];
 
-__global__ void multiply(int *a, int *b, int *c, int a_n, int b_n, int a_m){
-    __shared__ int m[TILE_WIDTH][TILE_WIDTH];
-    __shared__ int n[TILE_WIDTH][TILE_WIDTH];
-    int row = (blockIdx.y * blockDim.y) + threadIdx.y;
-    int col = (blockIdx.x * blockDim.x) + threadIdx.x;
-    int pval = 0;
-    if(row >= a_m || col >= b_n){
-        return;
-    }
-    int total_phases = (b_n + TILE_WIDTH - 1) / TILE_WIDTH;
-    for(int phase = 0; phase < total_phases; ++phase){
-        int a_col = (phase * TILE_WIDTH) + threadIdx.x;
-        int b_row = (phase * TILE_WIDTH) + threadIdx.y;
-        if(a_col >= a_n || b_row >= a_n){
-            return;
+__global__ void conv1d(int *a, int *ans, int mask_l, int input_l)
+{
+    int i = (blockDim.x * blockIdx.x) + threadIdx.x;
+    int start = i - (mask_l / 2);
+    ans[i] = 0;
+    for (int j = 0; j < mask_l; ++j)
+    {
+        if (start + j >= 0 && start + j < input_l)
+        {
+            ans[i] += a[start + j] * mask[j];
         }
-        m[threadIdx.y][threadIdx.x] = a[(row * a_n) + a_col];
-        n[threadIdx.y][threadIdx.x] = b[(b_row * b_n) + col];
-        __syncthreads();
-        for(int k = 0; k < TILE_WIDTH; ++k){
-            pval += m[threadIdx.y][k] * n[k][threadIdx.x];
-        }
-        __syncthreads();
     }
-    c[(b_n * row) + col] = pval;
     return;
 }
-
-int main(){
-    int *a, *b, *c, m1, m2, n1, n2, *da, *db, *dc;
-    printf("enter m1 n1 m2 n2\n");
-    scanf("%d %d %d %d", &m1, &n1, &m2, &n2);
-    a = (int *)malloc(sizeof(int) * m1 * n1);
-    b = (int *)malloc(sizeof(int) * m2 * n2);
-    c = (int *)malloc(sizeof(int) * m1 * n2);
+int main()
+{
+    int *a, *ans, *da, *dans, *m, mask_l, input_l;
+    printf("enter input size\n");
+    scanf("%d", &input_l);
+    a = (int *)malloc(sizeof(int) * input_l);
+    ans = (int *)malloc(sizeof(int) * input_l);
     printf("enter a\n");
-    for(int i = 0; i < m1; ++i){
-        for(int j = 0; j < n1; ++j){
-            scanf("%d", &a[(i * n1) + j]);
-        }
+    for (int i = 0; i < input_l; ++i)
+    {
+        scanf("%d", &a[i]);
     }
-    printf("enter b\n");
-    for(int i = 0; i < m2; ++i){
-        for(int j = 0; j < n2; ++j){
-            scanf("%d", &b[(i * n2) + j]);
-        }
+    printf("enter mask size\n");
+    scanf("%d", &mask_l);
+    m = (int *)malloc(sizeof(int) * mask_l);
+    printf("enter mask\n");
+    for (int i = 0; i < mask_l; ++i)
+    {
+        scanf("%d", &m[i]);
     }
-    cudaMalloc((void **)&da, sizeof(int) * m1 * n1);
-    cudaMalloc((void **)&db, sizeof(int) * m2 * n2);
-    cudaMalloc((void **)&dc, sizeof(int) * m1 * n2);
-    cudaMemcpy(da, a, sizeof(int) * m1 * n1, cudaMemcpyHostToDevice);
-    cudaMemcpy(db, b, sizeof(int) * m2 * n2, cudaMemcpyHostToDevice);
-    dim3 gridSize((n2 + TILE_WIDTH - 1) / TILE_WIDTH, (m1 + TILE_WIDTH - 1) / TILE_WIDTH);
-    dim3 blockSize(TILE_WIDTH, TILE_WIDTH);
-    multiply<<<gridSize, blockSize>>>(da, db, dc, n1, n2, m1);
-    cudaMemcpy(c, dc, sizeof(int) * m1 * n2, cudaMemcpyDeviceToHost);
+    cudaMalloc((void **)&da, sizeof(int) * input_l);
+    cudaMalloc((void **)&dans, sizeof(int) * input_l);
+    cudaMemcpyToSymbol(mask, m, sizeof(int) * mask_l);
+    cudaMemcpy(da, a, sizeof(int) * input_l, cudaMemcpyHostToDevice);
+    conv1d<<<1, input_l>>>(da, dans, mask_l, input_l);
+    cudaMemcpy(ans, dans, sizeof(int) * input_l, cudaMemcpyDeviceToHost);
     printf("answer\n");
-    for(int i = 0; i < m1; ++i){
-        for(int j = 0; j < n2; ++j){
-            printf("%d ", c[(i * n2) + j]);
-        }
-        printf("\n");
+    for (int i = 0; i < input_l; ++i)
+    {
+        printf("%d ", ans[i]);
     }
+    cudaFree(da);
+    cudaFree(dans);
     return 0;
 }
