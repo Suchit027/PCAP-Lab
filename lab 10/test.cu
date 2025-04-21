@@ -1,64 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <device_launch_parameters.h>
 #include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
-__global__ void evenphase(int *a, int input_l)
+#define TILE_SIZE 5
+#define MASK_RADIUS 2
+
+__constant__ int mask[5];
+
+__global__ void conv1d(int *a, int n, int *ans)
 {
+    __shared__ int m[TILE_SIZE + (2 * MASK_RADIUS)];
     int i = (blockDim.x * blockIdx.x) + threadIdx.x;
-    if (i % 2 != 0)
+    if (i < n)
     {
-        i += 1;
-    }
-    if (i < input_l - 1 && a[i] > a[i + 1])
-    {
-        int temp = a[i];
-        a[i] = a[i + 1];
-        a[i + 1] = temp;
-    }
-    return;
-}
-__global__ void oddphase(int *a, int input_l)
-{
-    int i = (blockDim.x * blockIdx.x) + threadIdx.x;
-    if (i % 2 == 0)
-    {
-        i += 1;
-    }
-    if (i < input_l - 1 && a[i] > a[i + 1])
-    {
-        int temp = a[i];
-        a[i] = a[i + 1];
-        a[i + 1] = temp;
+        m[threadIdx.x + MASK_RADIUS] = a[i];
+        if (threadIdx.x < MASK_RADIUS)
+        {
+            if (i - MASK_RADIUS < 0)
+            {
+                m[threadIdx.x] = 0;
+            }
+            else
+            {
+                m[threadIdx.x] = a[i - threadIdx.x];
+            }
+        }
+        if (threadIdx.x + (2 * MASK_RADIUS) >= TILE_SIZE)
+        {
+            if (i + MASK_RADIUS < n)
+            {
+                m[threadIdx.x + (2 * MASK_RADIUS)] = a[i + threadIdx.x];
+            }
+            else
+            {
+                m[threadIdx.x + (2 * MASK_RADIUS)] = 0;
+            }
+        }
+        __syncthreads();
+        int val = 0;
+        for (int j = -MASK_RADIUS; j < MASK_RADIUS + 1; ++j)
+        {
+            val += m[threadIdx.x + MASK_RADIUS + j] * mask[MASK_RADIUS + j];
+        }
+        ans[i] = val;
+        __syncthreads();
     }
     return;
 }
 int main()
 {
-    int *a, n, *da;
-    printf("enter size of array\n");
+    int *a, *ans, n, *da, *dans, *mmask;
+    printf("enter array size\n");
     scanf("%d", &n);
     a = (int *)malloc(sizeof(int) * n);
+    ans = (int *)malloc(sizeof(int) * n);
+    mmask = (int *)malloc(sizeof(int) * 5);
     printf("enter array\n");
     for (int i = 0; i < n; ++i)
     {
         scanf("%d", &a[i]);
     }
-    cudaMalloc((void **)&da, sizeof(int) * n);
-    cudaMemcpy(da, a, sizeof(int) * n, cudaMemcpyHostToDevice);
-    for (int i = 0; i < n; ++i)
+    printf("enter mask\n");
+    for (int i = 0; i < 5; ++i)
     {
-        evenphase<<<1, n>>>(da, n);
-        cudaDeviceSynchronize();
-        oddphase<<<1, n>>>(da, n);
-        cudaDeviceSynchronize();
+        scanf("%d", &mmask[i]);
     }
-    cudaMemcpy(a, da, sizeof(int) * n, cudaMemcpyDeviceToHost);
+    cudaMemcpyToSymbol(mask, mmask, sizeof(int) * 5);
+    cudaMalloc((void **)&da, sizeof(int) * n);
+    cudaMalloc((void **)&dans, sizeof(int) * n);
+    cudaMemcpy(da, a, sizeof(int) * n, cudaMemcpyHostToDevice);
+    conv1d<<<1, n>>>(da, n, dans);
+    cudaMemcpy(ans, dans, sizeof(int) * n, cudaMemcpyDeviceToHost);
     printf("answer\n");
     for (int i = 0; i < n; ++i)
     {
-        printf("%d ", a[i]);
+        printf("%d", ans[i]);
     }
-    cudaFree(da);
     return 0;
 }

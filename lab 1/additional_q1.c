@@ -1,9 +1,11 @@
 #include <stdio.h>
+// note
 #include <mpi.h>
 
 int main(int argc, char **argv){
     int rank;
     int arr[] = {18, 22, 14, 55};
+    // note
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank < 2){
@@ -15,6 +17,7 @@ int main(int argc, char **argv){
         printf("%d ", arr[i]);
     }
     printf("\n");
+    // note
     MPI_Finalize();
     return 0;
 }

@@ -69,6 +69,7 @@ int main()
     cudaMalloc((void **)&dans, sizeof(int) * input_l);
     cudaMemcpyToSymbol(mask, m, sizeof(int) * ((2 * MASK_RADIUS) + 1));
     cudaMemcpy(da, a, sizeof(int) * input_l, cudaMemcpyHostToDevice);
+    // note
     dim3 gridSize((input_l + TILE_SIZE - 1) / TILE_SIZE);
     conv1d<<<gridSize, TILE_SIZE>>>(da, dans, input_l);
     cudaMemcpy(ans, dans, sizeof(int) * input_l, cudaMemcpyDeviceToHost);

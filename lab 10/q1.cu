@@ -73,6 +73,7 @@ int main(){
     cudaMemcpy(da, a, sizeof(int) * m1 * n1, cudaMemcpyHostToDevice);
     cudaMemcpy(db, b, sizeof(int) * m2 * n2, cudaMemcpyHostToDevice);
     dim3 dimBlock(TILE_SIZE, TILE_SIZE);
+    // note order x, y
     dim3 dimGrid((n2 + TILE_SIZE - 1) / TILE_SIZE, (m1 + TILE_SIZE - 1) / TILE_SIZE);
     mul<<<dimGrid, dimBlock>>>(da, db, dc, m1, n1, n2);
     cudaMemcpy(c, dc, sizeof(int) * m1 * n2, cudaMemcpyDeviceToHost);
